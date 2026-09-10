@@ -2,17 +2,21 @@
     ViewData["Title"] = "Prefinal Exam - Flashcard Quiz";
 }
 
-<div style="max-width:420px; margin:40px auto; font-family:sans-serif;">
-    <div style="text-align:center; margin-bottom:10px;">
-        <div id="counter" style="font-size:14px; color:#666;">Question 1 of 20</div>
-    </div>
+<div style="min-height:100vh; background:linear-gradient(160deg, #0f1b33, #16223f 60%, #0f1b33); margin:0; padding:40px 20px; font-family:sans-serif;">
 
-    <div style="position:relative; height:300px;" id="stage"></div>
+    <div style="max-width:560px; margin:0 auto;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:18px;">
+            <div style="font-size:22px; font-weight:600; color:#eef1f8;">Prefinal Exam Quiz</div>
+            <div id="counter" style="font-size:13px; color:#b7c2dd; background:rgba(255,255,255,0.08); padding:6px 14px; border-radius:999px; border:1px solid rgba(255,255,255,0.12);">1 / 20</div>
+        </div>
 
-    <div style="display:flex; justify-content:center; align-items:center; gap:24px; margin-top:24px;">
-        <button id="prevBtn" style="width:44px; height:44px; border-radius:50%; border:1px solid #ccc; background:#fff; cursor:pointer; font-size:18px;">&#8592;</button>
-        <button id="flipBtn" style="padding:10px 18px; border-radius:8px; border:1px solid #ccc; background:#fff; cursor:pointer;">Flip card</button>
-        <button id="nextBtn" style="width:44px; height:44px; border-radius:50%; border:1px solid #ccc; background:#fff; cursor:pointer; font-size:18px;">&#8594;</button>
+        <div style="position:relative; height:440px;" id="stage"></div>
+
+        <div style="display:flex; justify-content:center; align-items:center; gap:28px; margin-top:28px;">
+            <button id="prevBtn" style="width:50px; height:50px; border-radius:50%; border:1px solid rgba(255,255,255,0.18); background:rgba(255,255,255,0.06); color:#eef1f8; cursor:pointer; font-size:20px;">&#8592;</button>
+            <button id="flipBtn" style="padding:0 26px; height:46px; border-radius:10px; border:1px solid rgba(255,255,255,0.18); background:rgba(255,255,255,0.06); color:#eef1f8; cursor:pointer; font-size:14px;">&#8635; Flip card</button>
+            <button id="nextBtn" style="width:50px; height:50px; border-radius:50%; border:1px solid rgba(255,255,255,0.18); background:rgba(255,255,255,0.06); color:#eef1f8; cursor:pointer; font-size:20px;">&#8594;</button>
+        </div>
     </div>
 </div>
 
@@ -20,8 +24,12 @@
     .stack-card {
         position: absolute;
         inset: 0;
-        border-radius: 14px;
-        box-shadow: 0 6px 16px rgba(0,0,0,0.15);
+        border-radius: 20px;
+        box-shadow: 0 16px 32px rgba(0,0,0,0.45);
+    }
+
+    #prevBtn:hover, #nextBtn:hover, #flipBtn:hover {
+        background: rgba(255,255,255,0.14) !important;
     }
 </style>
 
@@ -52,34 +60,37 @@
     let idx = 0, flipped = false;
     const stage = document.getElementById('stage');
     const counter = document.getElementById('counter');
-    const frontColors = ["#6a5acd", "#20b2aa", "#e07856"];
+    const backColors = ["#1c2c52", "#233866", "#2a4479"];
 
     function render() {
         stage.innerHTML = '';
-        for (let d = 2; d >= 0; d--) {
+        for (let d = 3; d >= 0; d--) {
             const i = (idx + d) % data.length;
             const isFront = d === 0;
             const wrap = document.createElement('div');
-            wrap.style.cssText = `position:absolute; inset:0; transform:translateY(${d * 10}px) scale(${1 - d * 0.05}); z-index:${10 - d}; transition:transform .3s;`;
+            wrap.style.cssText = `position:absolute; inset:0; transform:translateY(${d * 14}px) scale(${1 - d * 0.045}); z-index:${10 - d}; transition:transform .35s;`;
 
             if (isFront) {
-                wrap.style.perspective = '1000px';
+                wrap.style.perspective = '1400px';
                 wrap.innerHTML = `
-                    <div id="flipInner" style="position:relative; width:100%; height:100%; transform-style:preserve-3d; transition:transform .5s; cursor:pointer;">
-                        <div class="stack-card" style="background:#4b6cb7; color:white; display:flex; align-items:center; justify-content:center; padding:24px; box-sizing:border-box; text-align:center; backface-visibility:hidden;">
-                            <div style="font-size:16px; line-height:1.5;">${data[i][0]}</div>
-                        </div>
-                        <div class="stack-card" style="background:#11998e; color:white; display:flex; align-items:center; justify-content:center; padding:24px; box-sizing:border-box; text-align:center; backface-visibility:hidden; transform:rotateY(180deg);">
-                            <div style="font-size:16px; font-weight:bold;">${data[i][1]}</div>
-                        </div>
-                    </div>`;
+                        <div id="flipInner" style="position:relative; width:100%; height:100%; transform-style:preserve-3d; transition:transform .55s; cursor:pointer;">
+                            <div class="stack-card" style="background:linear-gradient(150deg,#3552a6,#25316b); color:#f2f4fb; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:40px; box-sizing:border-box; text-align:center; backface-visibility:hidden; border:1px solid rgba(255,255,255,0.1);">
+                                <div style="position:absolute; top:20px; left:24px; font-size:12px; font-weight:600; letter-spacing:.03em; opacity:.75;">QUESTION</div>
+                                <div style="font-size:22px; line-height:1.6; font-weight:500;">${data[i][0]}</div>
+                                <div style="position:absolute; bottom:20px; font-size:12px; opacity:.6;">Tap to reveal answer</div>
+                            </div>
+                            <div class="stack-card" style="background:linear-gradient(150deg,#12897c,#0c6058); color:#f2f4fb; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:40px; box-sizing:border-box; text-align:center; backface-visibility:hidden; transform:rotateY(180deg); border:1px solid rgba(255,255,255,0.1);">
+                                <div style="position:absolute; top:20px; left:24px; font-size:12px; font-weight:600; letter-spacing:.03em; opacity:.75;">ANSWER</div>
+                                <div style="font-size:24px; font-weight:600; line-height:1.5;">${data[i][1]}</div>
+                            </div>
+                        </div>`;
                 wrap.querySelector('#flipInner').addEventListener('click', doFlip);
             } else {
-                wrap.innerHTML = `<div class="stack-card" style="background:${frontColors[d]}; opacity:${0.5 - d * 0.1};"></div>`;
+                wrap.innerHTML = `<div class="stack-card" style="background:${backColors[d - 1]}; opacity:${0.75 - d * 0.1}; border:1px solid rgba(255,255,255,0.08);"></div>`;
             }
             stage.appendChild(wrap);
         }
-        counter.textContent = `Question ${idx + 1} of ${data.length}`;
+        counter.textContent = `${idx + 1} / ${data.length}`;
     }
 
     function doFlip() {
