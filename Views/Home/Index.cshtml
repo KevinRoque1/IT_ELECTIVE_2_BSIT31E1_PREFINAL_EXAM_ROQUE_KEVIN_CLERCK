@@ -2,113 +2,93 @@
     ViewData["Title"] = "Prefinal Exam - Flashcard Quiz";
 }
 
-<div class="quiz-header">
-    <h1>IT Elective 2 - Prefinal Exam</h1>
-    <p>Click a card to flip it and reveal the answer.</p>
+<div style="max-width:420px; margin:40px auto; font-family:sans-serif;">
+    <div style="text-align:center; margin-bottom:10px;">
+        <div id="counter" style="font-size:14px; color:#666;">Question 1 of 20</div>
+    </div>
+
+    <div style="position:relative; height:300px;" id="stage"></div>
+
+    <div style="display:flex; justify-content:center; align-items:center; gap:24px; margin-top:24px;">
+        <button id="prevBtn" style="width:44px; height:44px; border-radius:50%; border:1px solid #ccc; background:#fff; cursor:pointer; font-size:18px;">&#8592;</button>
+        <button id="flipBtn" style="padding:10px 18px; border-radius:8px; border:1px solid #ccc; background:#fff; cursor:pointer;">Flip card</button>
+        <button id="nextBtn" style="width:44px; height:44px; border-radius:50%; border:1px solid #ccc; background:#fff; cursor:pointer; font-size:18px;">&#8594;</button>
+    </div>
 </div>
 
-<div class="card-grid" id="cardGrid"></div>
-
 <style>
-    .quiz-header { text-align: center; margin: 20px 0; }
-    .card-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
-        gap: 20px;
-        padding: 20px;
-    }
-    .flip-card {
-        background-color: transparent;
-        width: 100%;
-        height: 220px;
-        perspective: 1000px;
-        cursor: pointer;
-    }
-    .flip-card-inner {
-        position: relative;
-        width: 100%;
-        height: 100%;
-        text-align: center;
-        transition: transform 0.6s;
-        transform-style: preserve-3d;
-        box-shadow: 0 4px 8px rgba(0,0,0,0.2);
-        border-radius: 12px;
-    }
-    .flip-card.flipped .flip-card-inner {
-        transform: rotateY(180deg);
-    }
-    .flip-card-front, .flip-card-back {
+    .stack-card {
         position: absolute;
-        width: 100%;
-        height: 100%;
-        backface-visibility: hidden;
-        border-radius: 12px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        padding: 16px;
-        box-sizing: border-box;
-        font-size: 15px;
-    }
-    .flip-card-front {
-        background: linear-gradient(135deg, #4b6cb7, #182848);
-        color: white;
-    }
-    .flip-card-back {
-        background: linear-gradient(135deg, #11998e, #38ef7d);
-        color: white;
-        transform: rotateY(180deg);
-        font-weight: bold;
-    }
-    .q-number {
-        position: absolute;
-        top: 8px;
-        left: 12px;
-        font-size: 12px;
-        opacity: 0.8;
+        inset: 0;
+        border-radius: 14px;
+        box-shadow: 0 6px 16px rgba(0,0,0,0.15);
     }
 </style>
 
 <script>
-    const questions = [
-        { q: "What is the main problem solved by using a database instead of an in-memory collection?", a: "It allows data to persist after the application stops" },
-        { q: "Which approach is being used when an existing database is used to generate EF Core entity classes?", a: "Database-First" },
-        { q: "What is the primary purpose of Entity Framework Core?", a: "To map objects in code to relational database data" },
-        { q: "Which EF Core component is primarily responsible for communicating with the database?", a: "DbContext" },
-        { q: "What does 'dotnet ef dbcontext scaffold ...' primarily do?", a: "Generates EF Core models and a DbContext from an existing database" },
-        { q: "Where is a database connection string commonly stored in an ASP.NET Core MVC application?", a: "appsettings.json" },
-        { q: "A Student belongs to exactly one Section, while a Section can contain many students. What type of relationship is this?", a: "One-to-Many" },
-        { q: "In the Student model, what is 'SectionId'?", a: "Foreign key referencing Section" },
-        { q: "What is the purpose of a navigation property such as 'public Section Section { get; set; }'?", a: "It represents a relationship to another entity" },
-        { q: "What does '.Include()' generally allow EF Core to do?", a: "Load related Section data together with Students" },
-        { q: "Why might a ViewModel be used when displaying Student and Section information?", a: "To combine or shape the data specifically needed by the view" },
-        { q: "What is the main benefit of 'Include(s => s.Section)' in a query?", a: "It loads the related Section navigation property" },
-        { q: "Which type of validation occurs in the browser before a request is sent to the server?", a: "Client-side validation" },
-        { q: "Why is server-side validation still necessary if client-side validation exists?", a: "Client-side validation can be bypassed" },
-        { q: "A school requires every student to have a unique Student Number. Which rule best represents this requirement?", a: "Student Number should be unique" },
-        { q: "Which is the best reason for having a database-level unique constraint on StudentNumber?", a: "It protects data integrity even if application-level validation is bypassed" },
-        { q: "What is the purpose of a try...catch block in a controller?", a: "To catch and handle exceptions that may occur during execution" },
-        { q: "Which middleware is commonly used in ASP.NET Core for centralized exception handling?", a: "UseExceptionHandler()" },
-        { q: "A user requests /Student/999, but Student 999 does not exist. What is the most appropriate response?", a: "Display a Not Found (404) response/page" },
-        { q: "A student already belongs to Section A for a subject. The app tries to assign them to Section A again. What is the primary concern?", a: "Data integrity" }
+    const data = [
+        ["What is the main problem solved by using a database instead of an in-memory collection?", "It allows data to persist after the application stops"],
+        ["Which approach is being used when an existing database is used to generate EF Core entity classes?", "Database-First"],
+        ["What is the primary purpose of Entity Framework Core?", "To map objects in code to relational database data"],
+        ["Which EF Core component is primarily responsible for communicating with the database?", "DbContext"],
+        ["What does the scaffold command primarily do?", "Generates EF Core models and a DbContext from an existing database"],
+        ["Where is a database connection string commonly stored in an ASP.NET Core MVC application?", "appsettings.json"],
+        ["A Student belongs to exactly one Section, while a Section can contain many students. What type of relationship is this?", "One-to-Many"],
+        ["In the Student model, what is 'SectionId'?", "Foreign key referencing Section"],
+        ["What is the purpose of a navigation property such as 'public Section Section { get; set; }'?", "It represents a relationship to another entity"],
+        ["What does '.Include()' generally allow EF Core to do?", "Load related Section data together with Students"],
+        ["Why might a ViewModel be used when displaying Student and Section information?", "To combine or shape the data specifically needed by the view"],
+        ["What is the main benefit of 'Include(s => s.Section)' in a query?", "It loads the related Section navigation property"],
+        ["Which type of validation occurs in the browser before a request is sent to the server?", "Client-side validation"],
+        ["Why is server-side validation still necessary if client-side validation exists?", "Client-side validation can be bypassed"],
+        ["A school requires every student to have a unique Student Number. Which rule best represents this requirement?", "Student Number should be unique"],
+        ["Which is the best reason for having a database-level unique constraint on StudentNumber?", "It protects data integrity even if application-level validation is bypassed"],
+        ["What is the purpose of a try...catch block in a controller?", "To catch and handle exceptions that may occur during execution"],
+        ["Which middleware is commonly used in ASP.NET Core for centralized exception handling?", "UseExceptionHandler()"],
+        ["A user requests /Student/999, but Student 999 does not exist. What is the most appropriate response?", "Display a Not Found (404) response/page"],
+        ["A student already belongs to Section A for a subject. The app tries to assign them to Section A again. What is the primary concern?", "Data integrity"]
     ];
 
-    const grid = document.getElementById("cardGrid");
-    questions.forEach((item, index) => {
-        const card = document.createElement("div");
-        card.className = "flip-card";
-        card.innerHTML = `
-            <div class="flip-card-inner">
-                <div class="flip-card-front">
-                    <span class="q-number">Q${index + 1}</span>
-                    <div>${item.q}</div>
-                </div>
-                <div class="flip-card-back">
-                    <div>${item.a}</div>
-                </div>
-            </div>
-        `;
-        card.addEventListener("click", () => card.classList.toggle("flipped"));
-        grid.appendChild(card);
-    });
+    let idx = 0, flipped = false;
+    const stage = document.getElementById('stage');
+    const counter = document.getElementById('counter');
+    const frontColors = ["#6a5acd", "#20b2aa", "#e07856"];
+
+    function render() {
+        stage.innerHTML = '';
+        for (let d = 2; d >= 0; d--) {
+            const i = (idx + d) % data.length;
+            const isFront = d === 0;
+            const wrap = document.createElement('div');
+            wrap.style.cssText = `position:absolute; inset:0; transform:translateY(${d * 10}px) scale(${1 - d * 0.05}); z-index:${10 - d}; transition:transform .3s;`;
+
+            if (isFront) {
+                wrap.style.perspective = '1000px';
+                wrap.innerHTML = `
+                    <div id="flipInner" style="position:relative; width:100%; height:100%; transform-style:preserve-3d; transition:transform .5s; cursor:pointer;">
+                        <div class="stack-card" style="background:#4b6cb7; color:white; display:flex; align-items:center; justify-content:center; padding:24px; box-sizing:border-box; text-align:center; backface-visibility:hidden;">
+                            <div style="font-size:16px; line-height:1.5;">${data[i][0]}</div>
+                        </div>
+                        <div class="stack-card" style="background:#11998e; color:white; display:flex; align-items:center; justify-content:center; padding:24px; box-sizing:border-box; text-align:center; backface-visibility:hidden; transform:rotateY(180deg);">
+                            <div style="font-size:16px; font-weight:bold;">${data[i][1]}</div>
+                        </div>
+                    </div>`;
+                wrap.querySelector('#flipInner').addEventListener('click', doFlip);
+            } else {
+                wrap.innerHTML = `<div class="stack-card" style="background:${frontColors[d]}; opacity:${0.5 - d * 0.1};"></div>`;
+            }
+            stage.appendChild(wrap);
+        }
+        counter.textContent = `Question ${idx + 1} of ${data.length}`;
+    }
+
+    function doFlip() {
+        flipped = !flipped;
+        document.getElementById('flipInner').style.transform = flipped ? 'rotateY(180deg)' : 'rotateY(0deg)';
+    }
+
+    document.getElementById('flipBtn').addEventListener('click', doFlip);
+    document.getElementById('nextBtn').addEventListener('click', () => { idx = (idx + 1) % data.length; flipped = false; render(); });
+    document.getElementById('prevBtn').addEventListener('click', () => { idx = (idx - 1 + data.length) % data.length; flipped = false; render(); });
+    render();
 </script>
